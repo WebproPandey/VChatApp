@@ -277,6 +277,8 @@
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
       };
       const initialize = async () => {
+      socket.on("sigalingMessage", handlesigalingMessage)
+
         try {
           localStream = await navigator.mediaDevices.getUserMedia({
             audio: true,
@@ -292,7 +294,21 @@
         }
       };
       const initiateOffer = async () => {
-        await crearePeerConnection();
+        await crearePeerConnection()
+        try{
+          const offer =  await perConnection.createOffer()
+          await perConnection.setLocalDescription(offer)
+          socket.emit("sigalingMessage" ,{
+              room: room,
+              message: JSON.stringify({
+              type: "offer",
+              offer
+            })
+          })
+        }
+        catch(error){
+          console.log("Error in creating offer ", error);
+        }
       };
       const crearePeerConnection = async () => {
         perConnection = new RTCPeerConnection(rtcSetting);
@@ -328,6 +344,7 @@
           console.log("Connection state change", perConnection.ConnectionState);
         };
       };
+
    
    </script>
   </body>

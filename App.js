@@ -35,6 +35,10 @@ io.on("connection" ,function (socket) {
      socket.broadcast.to(data.room).emit("message" , data.message)  
            
     })
+    socket.on("sigalingMessage" ,function (data){
+      socket.broadcast.to(data.room).emit("sigalingMessage" , data.message)
+      
+    })
     
 })
 
