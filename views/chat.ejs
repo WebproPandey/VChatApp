@@ -273,20 +273,62 @@
       let remoteStream;
       let perConnection;
       let inCall = false;
-
+      const rtcSetting = {
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      };
       const initialize = async () => {
         try {
           localStream = await navigator.mediaDevices.getUserMedia({
             audio: true,
             video: true,
           });
+
           document.querySelector("#localVideo").srcObject = localStream;
-          document.querySelector("#localVideo").style.display = "block"
+          document.querySelector("#localVideo").style.display = "block";
+          initiateOffer();
+          incall = true;
         } catch (err) {
           console.log("rejected by ", err);
         }
       };
-      initialize();
-    </script>
+      const initiateOffer = async () => {
+        await crearePeerConnection();
+      };
+      const crearePeerConnection = async () => {
+        perConnection = new RTCPeerConnection(rtcSetting);
+        remoteStream = new MediaStream();
+        document.querySelector("#remoteVideo").srcObject = remoteStream;
+        (document.querySelector("#remoteVideo").style.display = "block"),
+          document.querySelector("#localVideo").classList.add("smallFrame");
+
+        localStream.getTrack().forEach((track) => {
+          perConnection.addTrack(track, localStream);
+        });
+        perConnection.ontrack = (event) => {
+          event.streams[0].getTracks().forEach((track) => {
+            remoteStream.addTrack(track);
+          });
+        };
+
+        perConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            console.log("sendin ice condiadte"),
+              socket.emit("sigalingMessage", {
+                room: room,
+                message: JSON.stringify({
+                  type: "candidate",
+                  candidate: event.candidate,
+                }),
+              });
+          }
+        };
+
+        perConnection.onconnectionstatechange = () => 
+        {
+          console.log("Connection state change", perConnection.ConnectionState);
+        };
+      };
+   
+   </script>
   </body>
 </html>
