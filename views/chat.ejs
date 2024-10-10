@@ -344,6 +344,56 @@
           console.log("Connection state change", perConnection.ConnectionState);
         };
       };
+      const handlesigalingMessage = async (message) => {
+        let {type , offer , answer , candidate} =  JSON.parse(message)
+        if(type === "offer") handleOffer(offer)
+        if(type === "answer") handleAnswer(answer)
+       if(type === "candidate" && perConnection){
+        try{await perConnection.addIceCandidate(candidate)}
+        catch(error){console.log("Error in adding ice candidate ", error);}
+       }
+         
+      }
+      
+      const handleOffer = async (offer) => {
+        await crearePeerConnection()
+        try{
+          await perConnection.setRemotDescription(offer)
+          await perConnection.setLocalDescription(answer)
+          const answer =  await perConnection.createAnswer();
+          socket.emit("sigalingMessage" , {room , message:JSON.stringify({ type:"answer" , answer})   })  
+          incall: true
+        } catch(err){
+           console.log(err);
+           
+         }
+       }
+      const handleAnswer  = async(answer) =>{
+          try{
+            await perConnection.setRemotDescription(answer)
+          }
+          catch(error){
+            console.log("Error in setting remote description ", error)
+          }
+       }
+      
+       document.querySelector("#video-call-btn").addEventListener("click" ,function(){
+           socket.emit("startVideoCall" , {room})        
+       })
+       socket.on("incomingCall" , function(){
+        document.querySelector("#incoming-call").classList.remove("hidden")
+       })
+
+       socket.on("callAccepted" , function(){
+        initialize()
+        document.querySelector(".videoblock").classList.remove("hidden");
+       })
+       document.querySelector("#accept-call").addEventListener("click" , function(){
+        document.querySelector("#incoming-call").classList.add("hidden")
+        initialize()
+        document.querySelector(".videoblock").classList.remove("hidden");
+        socket.emit("acceptCall" ,{room})
+       })
 
    
    </script>

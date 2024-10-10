@@ -35,8 +35,14 @@ io.on("connection" ,function (socket) {
      socket.broadcast.to(data.room).emit("message" , data.message)  
            
     })
-    socket.on("sigalingMessage" ,function (data){
-      socket.broadcast.to(data.room).emit("sigalingMessage" , data.message)
+    socket.on("startVideoCall" ,function (data){
+     socket.broadcast.to(data.room).emit("incomingCall")      
+    })
+    socket.on("acceptCall" , function ({room}) {
+      socket.broadcast(room).emit("callAccepted")      
+    } )
+    socket.on("sigalingMessage" ,function ({room}){
+      socket.broadcast.to(room).emit("sigalingMessage" , data.message)
       
     })
     
